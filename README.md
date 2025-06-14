@@ -1,7 +1,9 @@
 
 # CI/CD Pipeline Setup Using Jenkins, Ansible, and Apache Web Server
 
-## Step – 1: Four Instances Launch
+---
+
+# Step 1: Launch Four Instances
 
 1. Jenkins  
 2. Ansible  
@@ -10,9 +12,9 @@
 
 ---
 
-## Ansible Server
+# Ansible Server Configuration
 
-### Step – 2: Install Ansible
+## Step 2: Install Ansible
 ```bash
 sudo apt update
 sudo apt install software-properties-common -y
@@ -20,47 +22,51 @@ sudo add-apt-repository --yes --update ppa:ansible/ansible
 sudo apt install ansible -y
 ```
 
-### Step – 3: Set Root User Password
-```
+## Step 3: Set Root User Password
+```bash
 passwd root
 ```
 
-### Step – 4: Generate SSH Key Pair
-```
+## Step 4: Generate SSH Key Pair
+```bash
 ssh-keygen
 ```
 
-### Step – 5: Enable SSH Root Login
-```
+## Step 5: Enable SSH Root Login
+```bash
 sudo nano /etc/ssh/sshd_config
-# Uncomment or add:
+```
+Update/Add these lines:
+```bash
 PermitRootLogin yes
 PasswordAuthentication yes
 ```
-```
+```bash
 sudo nano /etc/ssh/sshd_config.d/10-cloud-init.conf
-# Add:
+```
+Add:
+```bash
 PermitRootLogin yes
 PasswordAuthentication yes
 ```
 
-### Step – 6: Restart SSH Service & Verify Configuration
-```
+## Step 6: Restart SSH Service & Verify Configuration
+```bash
 sudo systemctl restart ssh
 sudo sshd -T | grep -Ei 'passwordauthentication|permitrootlogin'
 ```
 
 ---
 
-## Jenkins Server
+# Jenkins Server Configuration
 
-### Step – 7: Create Jenkins Install Script
-```
+## Step 7: Create Jenkins Install Script
+```bash
 nano jenkins.sh
 ```
 
-Paste the following:
-```
+Paste the following content:
+```bash
 #!/bin/bash
 
 set -e
@@ -97,107 +103,115 @@ echo "Initial admin password:"
 sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 ```
 
-### Step – 8: Give Permission to Script
-```
+## Step 8: Make the Script Executable
+```bash
 chmod +x jenkins.sh
 ```
 
-### Step – 9: Run the Script
-```
+## Step 9: Run the Script
+```bash
 sudo ./jenkins.sh
 ```
 
-### Step – 10 to 13: Root Setup and SSH Config (Same as Ansible)
-```
+## Step 10 to 13: Root Password & SSH Login (Repeat Same Steps as Ansible)
+```bash
 passwd root
 ssh-keygen
 sudo nano /etc/ssh/sshd_config
-# Edit:
+```
+Update:
+```bash
 PermitRootLogin yes
 PasswordAuthentication yes
 ```
-```
+```bash
 sudo nano /etc/ssh/sshd_config.d/10-cloud-init.conf
-# Add:
+```
+Add:
+```bash
 PermitRootLogin yes
 PasswordAuthentication yes
 ```
-```
+```bash
 sudo systemctl restart ssh
 sudo sshd -T | grep -Ei 'passwordauthentication|permitrootlogin'
 ```
 
 ---
 
-## Web Server
+# Web Server Configuration
 
-### Step – 14: Install Apache
-```
+## Step 14: Install Apache
+```bash
 apt install apache2
 ```
 
-### Step – 15 to 18: Root Setup and SSH Config
-```
+## Step 15 to 18: Root Password & SSH Config
+```bash
 passwd root
 ssh-keygen
 sudo nano /etc/ssh/sshd_config
-# Edit:
+```
+Update:
+```bash
 PermitRootLogin yes
 PasswordAuthentication yes
 ```
-```
+```bash
 sudo nano /etc/ssh/sshd_config.d/10-cloud-init.conf
-# Add:
+```
+Add:
+```bash
 PermitRootLogin yes
 PasswordAuthentication yes
 ```
-```
+```bash
 sudo systemctl restart ssh
 sudo sshd -T | grep -Ei 'passwordauthentication|permitrootlogin'
 ```
 
 ---
 
-## SSH Authentication Setup
+# SSH Authentication Setup
 
-### Step – 19: Jenkins → Ansible
-```
+## Step 19: Jenkins → Ansible SSH Key Auth
+```bash
 ssh-copy-id root@<ansible_private_ip>
 ssh root@<ansible_private_ip>
 ```
 
-### Step – 20: Ansible → Web Server
-```
+## Step 20: Ansible → Web Server SSH Key Auth
+```bash
 ssh-copy-id root@<web-server_private_ip>
 ssh root@<web-server_private_ip>
 ```
 
 ---
 
-## Ansible Project Setup
+# Ansible Project Setup
 
-### Step – 21: Create and Navigate to Project Directory
-```
+## Step 21: Create Project Directory
+```bash
 mkdir -p /home/ubuntu/sourcecode
 cd /home/ubuntu/sourcecode
 ```
 
-### Step – 22: Create Inventory File
-```
+## Step 22: Define Web Server in Ansible Inventory
+```bash
 nano hosts
 ```
-Content:
-```
+Add:
+```ini
 [webserver]
 <web-server-private-ip> ansible_user=root
 ```
 
-### Step – 23: Create Playbook
-```
+## Step 23: Ansible Playbook for Deployment
+```bash
 nano playbook.yml
 ```
-Content:
-```
+Add:
+```yaml
 - name: Deploy index.html to webserver
   hosts: webserver
   become: yes
@@ -210,70 +224,72 @@ Content:
 
 ---
 
-## Jenkins GitHub Integration
+# Jenkins Configuration
 
-### Step – 24: Create API Token
+## Step 24: Create Jenkins API Token
 
-- Go to: Dashboard > Your Username > Configure > API Token > Generate Token  
-- Save the token securely
+- Go to: **Dashboard > Your Username > Configure**  
+- Generate and save new token under **API Token**
 
-### Step – 25: GitHub Webhook
+## Step 25: GitHub Webhook Setup
 
-- Go to: GitHub Repo > Settings > Webhooks > Add webhook  
-- Payload URL:  
-```
+- Go to: **GitHub Repo > Settings > Webhooks > Add Webhook**  
+Payload URL:
+```bash
 http://<jenkins_ip>:8080/github-webhook/
 ```
-- Content Type: `application/json`  
-- Secret: (Optional)  
-- Save
+Content type: `application/json`  
+Save.
 
-### Step – 26: Jenkins Plugin + Remote Hosts
+## Step 26: Install Plugin and SSH Remote Hosts
 
-1. Dashboard → Manage Jenkins → Plugin Manager → Install “Publish Over SSH”  
-2. Configure System → Add SSH Hosts:
+- Manage Jenkins > Plugin Manager > Install **Publish Over SSH**
 
+Configure remote hosts:
 ```
-Jenkins Host:
+Jenkins:
 - Name: Jenkins
 - Hostname: <jenkins_private_ip>
 - Username: root
 
-Ansible Host:
-- Name: ansible
+Ansible:
+- Name: Ansible
 - Hostname: <ansible_private_ip>
 - Username: root
 ```
 
 ---
 
-## Jenkins Freestyle Project
+# Jenkins Freestyle Job
 
-### Step – 27: Project Configuration
+## Step 27: Create Jenkins Freestyle Project
 
-- **Source Code Management**  
-```
-Repository: https://github.com/your/repo.git
-Branch: <branch-name>
+- **Source Code Management**:
+```bash
+Git Repository: https://github.com/your/repo.git
+Branch: main
 ```
 
-- **Build Triggers**  
-```
+- **Build Trigger**:
+```bash
 Check: GitHub hook trigger for GITScm polling
 ```
 
-- **Build Steps**  
-```
-# Step 1: Send File to Ansible
+- **Build Step 1**: Send File to Ansible
+```bash
 rsync -avh /var/lib/jenkins/workspace/<project_name>/index.html root@<ansible_ip>:/opt/
+```
 
-# Step 2: Trigger Ansible Playbook
+- **Build Step 2**: Trigger Ansible Playbook
+```bash
 ansible-playbook -i /home/ubuntu/sourcecode/hosts /home/ubuntu/sourcecode/playbook.yml
 ```
 
 ---
 
-## Step – 28: Access Web Server
-```
+# Step 28: Access Deployed Web Page
+
+Open in browser:
+```bash
 http://<web-server-ip>
 ```
