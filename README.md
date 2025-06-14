@@ -292,5 +292,5 @@ ansible-playbook -i /home/ubuntu/sourcecode/hosts /home/ubuntu/sourcecode/playbo
 Open in browser:
 ```bash
 http://<web-server-ip>
-![Output Screenshot](JAAC.png)
 ```
+![Output Screenshot](JAAC.png)
