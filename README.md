@@ -245,6 +245,9 @@ Save.
 ## Step 26: Install Plugin and SSH Remote Hosts
 
 - Manage Jenkins > Plugin Manager > Install **Publish Over SSH**
+- **Pipeline (workflow-aggregator)**
+- **Git Plugin**
+- **SSH Agent Plugin (optional if using rsync/ssh directly)**
 
 Configure remote hosts:
 ```
@@ -263,7 +266,7 @@ Ansible:
 
 # Jenkins Freestyle Job
 
-## Step 27: Create Jenkins Freestyle Project
+## Step 27: Create Jenkins Freestyle Project (Opatin 1)
 
 - **Source Code Management**:
 ```bash
@@ -284,6 +287,66 @@ rsync -avh /var/lib/jenkins/workspace/<project_name>/index.html root@<ansible_ip
 - **Build Step 2**: Trigger Ansible Playbook
 ```bash
 ansible-playbook -i /home/ubuntu/sourcecode/hosts /home/ubuntu/sourcecode/playbook.yml
+```
+
+---
+## Step 27: Create Jenkins Pipeline Project (Opatin 2)
+# Switch to jenkins user
+sudo su - jenkins
+ 
+# If ~/.ssh/id_rsa does not exist, generate one:
+ssh-keygen -t rsa -b 2048
+ 
+# Copy public key to the Ansible server
+ssh-copy-id root@<Ansible_Private_Ip>
+
+```pipeline
+pipeline {
+    agent any
+ 
+    environment {
+        // Update these variables as per your setup
+        ANSIBLE_SERVER = "root@<Ansible_Private_Ip>"    // Ansible Server IP
+        ANSIBLE_IP = "<Ansible_Private_Ip>"
+        REMOTE_DIR = "/opt"
+        FILE_NAME = "index.html"
+        FILE_PATH = "<Job_Nmae>/${FILE_NAME}"         // Adjust this if your Jenkins job name is different
+    }
+ 
+    stages {
+        stage('Clone from GitHub') {
+            steps {
+                git branch: 'main', url: '<Your_GitHub_Repo>'
+            }
+        }
+ 
+        stage('Transfer index.html to Ansible') {
+            steps {
+                sh """
+                rsync -e "ssh -o StrictHostKeyChecking=no" -avh /var/lib/jenkins/workspace/${FILE_PATH} root@${ANSIBLE_IP}:${REMOTE_DIR}/
+                """
+            }
+        }
+ 
+        stage('Run Ansible Playbook') {
+            steps {
+                sh """
+                ssh -o StrictHostKeyChecking=no ${ANSIBLE_SERVER} \\
+                'ansible-playbook -i /home/ubuntu/sourcecode/hosts /home/ubuntu/sourcecode/playbook.yml'
+                """
+            }
+        }
+    }
+ 
+    post {
+        success {
+            echo '✅ CI/CD pipeline completed successfully!'
+        }
+        failure {
+            echo '❌ CI/CD pipeline failed. Check the logs above.'
+        }
+    }
+}
 ```
 
 ---
