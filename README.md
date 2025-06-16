@@ -244,10 +244,12 @@ Save.
 
 ## Step 26: Install Plugin and SSH Remote Hosts
 
-- Manage Jenkins > Plugin Manager > Install **Publish Over SSH**
-- **Pipeline (workflow-aggregator)**
-- **Git Plugin**
-- **SSH Agent Plugin (optional if using rsync/ssh directly)**
+- Manage Jenkins > Plugin Manager >
+- Plugins Install
+-   **Publish Over SSH**
+-   **Pipeline (workflow-aggregator)**
+-   **Git Plugin**
+-   **SSH Agent Plugin (optional if using rsync/ssh directly)**
 
 Configure remote hosts:
 ```
@@ -266,7 +268,7 @@ Ansible:
 
 # Jenkins Freestyle Job
 
-## Step 27: Create Jenkins Freestyle Project (Opatin 1)
+## Step 27: Create Jenkins Freestyle Project (Option 1)
 
 - **Source Code Management**:
 ```bash
@@ -290,15 +292,21 @@ ansible-playbook -i /home/ubuntu/sourcecode/hosts /home/ubuntu/sourcecode/playbo
 ```
 
 ---
-## Step 27: Create Jenkins Pipeline Project (Opatin 2)
-# Switch to jenkins user
+## Step 27: Create Jenkins Pipeline Project (Option 2)
+### Switch to jenkins user
+```bash
 sudo su - jenkins
+```
  
-# If ~/.ssh/id_rsa does not exist, generate one:
+### If ~/.ssh/id_rsa does not exist, generate one:
+```bash
 ssh-keygen -t rsa -b 2048
+```
  
-# Copy public key to the Ansible server
+### Copy public key to the Ansible server
+```bash
 ssh-copy-id root@<Ansible_Private_Ip>
+```
 
 ```pipeline
 pipeline {
