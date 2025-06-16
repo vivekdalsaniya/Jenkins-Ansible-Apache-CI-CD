@@ -246,10 +246,10 @@ Save.
 
 - Manage Jenkins > Plugin Manager >
 - Plugins Install
--   **Publish Over SSH**
--   **Pipeline (workflow-aggregator)**
--   **Git Plugin**
--   **SSH Agent Plugin (optional if using rsync/ssh directly)**
+  - **Publish Over SSH**
+  - **Pipeline (workflow-aggregator)**
+  - **Git Plugin**
+  - **SSH Agent Plugin (optional if using rsync/ssh directly)**
 
 Configure remote hosts:
 ```
@@ -307,6 +307,8 @@ ssh-keygen -t rsa -b 2048
 ```bash
 ssh-copy-id root@<Ansible_Private_Ip>
 ```
+
+### Jenkins Pipeline
 
 ```pipeline
 pipeline {
