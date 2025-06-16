@@ -292,7 +292,7 @@ ansible-playbook -i /home/ubuntu/sourcecode/hosts /home/ubuntu/sourcecode/playbo
 ```
 
 ---
-## Step 27: Create Jenkins Pipeline Project (Option 2)
+## Step 28: Create Jenkins Pipeline Project (Option 2)
 ### Switch to jenkins user
 ```bash
 sudo su - jenkins
@@ -361,7 +361,7 @@ pipeline {
 
 ---
 
-# Step 28: Access Deployed Web Page
+# Step 29: Access Deployed Web Page
 
 Open in browser:
 ```bash
