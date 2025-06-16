@@ -1,5 +1,6 @@
-
 # CI/CD Pipeline Setup Using Jenkins, Ansible, and Apache Web Server
+
+![Screenshot](A.png)
 
 ---
 
